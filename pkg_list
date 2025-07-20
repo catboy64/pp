@@ -1,0 +1,4 @@
+bash 5.2.21 ad5b38410e3bf0e9bcc20e2765f5e3f9 https://ftp.gnu.org/gnu/bash/bash-5.2.21.tar.gz
+acl 2.3.2 590765dee95907dbc3c856f7255bd669 https://download.savannah.gnu.org/releases/acl/acl-2.3.2.tar.xz
+helloworld 1.2.3 590765dee95907dbc3c856f7255bd669 helloworld.tar.gz
+neoflex 0.0.1 adoiwdjqo https://github.com/catboy64/neoflex/archive/refs/heads/main.zip

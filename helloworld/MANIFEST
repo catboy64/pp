@@ -1,0 +1,6 @@
+name: helloworld
+version: 1.2.3
+description: helloworld package
+dependecies: bash
+install: install.sh
+uninstall: uninstall.sh
