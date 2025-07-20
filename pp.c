@@ -13,7 +13,7 @@
 typedef struct {
     char name[50];
     char version[20];
-    char md5[33];  // TODO: switch to starhash
+    char sha256[65];
     char url[256];
     int present_in_repository; // 0=not present, 1=exist, 2=to be update, 3=to be remove, 4=security update, 5=optional, 6= mandotary
 } Package;
@@ -44,7 +44,7 @@ void write_local_package_list() {
             fprintf(file, "%s %s %s %s\n",
                     local_packages[i].name,
                     local_packages[i].version,
-                    local_packages[i].md5,
+                    local_packages[i].sha256,
                     local_packages[i].url);
         }
     }
@@ -66,30 +66,30 @@ void read_repository_package_list() {
 
         char *package_name = strtok(line, " ");
         char *version = strtok(NULL, " ");
-        char *md5 = strtok(NULL, " "); // TODO: switch to starhash
+        char *sha256 = strtok(NULL, " ");
         char *url = strtok(NULL, " ");
         // TODO: add array of flag
 
-        if (package_name && version && md5 && url) {
+        if (package_name && version && sha256 && url) {
             int index = find_local_package(package_name);
 
             if (index != -1) {
                 local_packages[index].present_in_repository = 1;
 
                 if (strcmp(local_packages[index].version, version) != 0 ||
-                    strcmp(local_packages[index].md5, md5) != 0 ||
+                    strcmp(local_packages[index].sha256, sha256) != 0 ||
                     strcmp(local_packages[index].url, url) != 0) {
 
-                    printf("Updating package %s: Version %s -> %s, MD5 %s -> %s, URL %s -> %s\n",
+                    printf("Updating package %s: Version %s -> %s, sha256 %s -> %s, URL %s -> %s\n",
                            package_name,
                            local_packages[index].version, version,
-                           local_packages[index].md5, md5,
+                           local_packages[index].sha256, sha256,
                            local_packages[index].url, url);
 
                     strncpy(local_packages[index].version, version, sizeof(local_packages[index].version) - 1);
                     local_packages[index].version[sizeof(local_packages[index].version) - 1] = '\0';
-                    strncpy(local_packages[index].md5, md5, sizeof(local_packages[index].md5) - 1);
-                    local_packages[index].md5[sizeof(local_packages[index].md5) - 1] = '\0';
+                    strncpy(local_packages[index].sha256, sha256, sizeof(local_packages[index].sha256) - 1);
+                    local_packages[index].sha256[sizeof(local_packages[index].sha256) - 1] = '\0';
                     strncpy(local_packages[index].url, url, sizeof(local_packages[index].url) - 1);
                     local_packages[index].url[sizeof(local_packages[index].url) - 1] = '\0';
                 } else {
@@ -102,8 +102,8 @@ void read_repository_package_list() {
                     local_packages[local_package_count].name[sizeof(local_packages[local_package_count].name) - 1] = '\0';
                     strncpy(local_packages[local_package_count].version, version, sizeof(local_packages[local_package_count].version) - 1);
                     local_packages[local_package_count].version[sizeof(local_packages[local_package_count].version) - 1] = '\0';
-                    strncpy(local_packages[local_package_count].md5, md5, sizeof(local_packages[local_package_count].md5) - 1);
-                    local_packages[local_package_count].md5[sizeof(local_packages[local_package_count].md5) - 1] = '\0';
+                    strncpy(local_packages[local_package_count].sha256, sha256, sizeof(local_packages[local_package_count].sha256) - 1);
+                    local_packages[local_package_count].sha256[sizeof(local_packages[local_package_count].sha256) - 1] = '\0';
                     strncpy(local_packages[local_package_count].url, url, sizeof(local_packages[local_package_count].url) - 1);
                     local_packages[local_package_count].url[sizeof(local_packages[local_package_count].url) - 1] = '\0';
                     local_packages[local_package_count].present_in_repository = 1;
@@ -135,16 +135,16 @@ void read_local_package_list() {
 
         char *package_name = strtok(line, " ");
         char *version = strtok(NULL, " ");
-        char *md5 = strtok(NULL, " ");
+        char *sha256 = strtok(NULL, " ");
         char *url = strtok(NULL, " ");
 
-        if (package_name && version && md5 && url) {
+        if (package_name && version && sha256 && url) {
             strncpy(local_packages[local_package_count].name, package_name, sizeof(local_packages[local_package_count].name) - 1);
             local_packages[local_package_count].name[sizeof(local_packages[local_package_count].name) - 1] = '\0';
             strncpy(local_packages[local_package_count].version, version, sizeof(local_packages[local_package_count].version) - 1);
             local_packages[local_package_count].version[sizeof(local_packages[local_package_count].version) - 1] = '\0';
-            strncpy(local_packages[local_package_count].md5, md5, sizeof(local_packages[local_package_count].md5) - 1);
-            local_packages[local_package_count].md5[sizeof(local_packages[local_package_count].md5) - 1] = '\0';
+            strncpy(local_packages[local_package_count].sha256, sha256, sizeof(local_packages[local_package_count].sha256) - 1);
+            local_packages[local_package_count].sha256[sizeof(local_packages[local_package_count].sha256) - 1] = '\0';
             strncpy(local_packages[local_package_count].url, url, sizeof(local_packages[local_package_count].url) - 1);
             local_packages[local_package_count].url[sizeof(local_packages[local_package_count].url) - 1] = '\0';
             local_packages[local_package_count].present_in_repository = 0;
@@ -165,10 +165,10 @@ void search_package(const char *search_term) {
     int found_count = 0;
     for (int i = 0; i < local_package_count; i++) {
         if (strstr(local_packages[i].name, search_term) != NULL) {
-            printf("Found package: Name=%s, Version=%s, MD5=%s, URL=%s\n",
+            printf("Found package: Name=%s, Version=%s, sha256=%s, URL=%s\n",
                    local_packages[i].name,
                    local_packages[i].version,
-                   local_packages[i].md5,
+                   local_packages[i].sha256,
                    local_packages[i].url);
             found_count++;
         }
@@ -186,10 +186,10 @@ void exact_search_package(const char *package_name_to_find) {
     int found_index = find_local_package(package_name_to_find);
 
     if (found_index != -1) {
-        printf("Found package: Name=%s, Version=%s, MD5=%s, URL=%s\n",
+        printf("Found package: Name=%s, Version=%s, sha256=%s, URL=%s\n",
                local_packages[found_index].name,
                local_packages[found_index].version,
-               local_packages[found_index].md5,
+               local_packages[found_index].sha256,
                local_packages[found_index].url);
     } else {
         printf("Package '%s' not found in local package list.\n", package_name_to_find);
@@ -209,7 +209,7 @@ void install_package(const char *package_name) {
     }
 
     const char *package_url = local_packages[package_index].url;
-    const char *package_md5 = local_packages[package_index].md5; // TODO: switch to starhash
+    const char *package_sha256 = local_packages[package_index].sha256;
     printf("Package URL: %s\n", package_url);
 
     char confirm_install[10];
