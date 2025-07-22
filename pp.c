@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <limits.h>
 #include <libgen.h>
+#include <openssl/evp.h>
 
 #define MAX_PACKAGES 100 // TODO
 
@@ -276,6 +277,43 @@ void install_package(const char *package_name) {
                 fclose(source_file);
                 fclose(dest_file);
                 printf("Copy complete.\n");
+            }
+
+            // hash
+            for (int i = 0; i < local_package_count; i++) {
+                if (strcmp(local_packages[i].name, package_name) == 0) {
+                    printf("HASH[A]:%s\n", local_packages[i].sha256);
+                    FILE *file = fopen(download_path, "rb");
+                    if (!file) {
+                        perror("Error opening file");
+                        return 1;
+                    }
+                    EVP_MD_CTX *mdctx;
+                    const EVP_MD *md;
+                    unsigned char output_hash[EVP_MAX_MD_SIZE];
+                    unsigned int output_len;
+                    unsigned char buffer[1024];
+                    size_t bytes_read;
+
+                    OpenSSL_add_all_digests();
+                    md = EVP_sha3_256();
+
+                    mdctx = EVP_MD_CTX_new();
+                    EVP_DigestInit_ex(mdctx, md, NULL);
+
+                    while ((bytes_read = fread(buffer, 1, sizeof(buffer), file)) > 0) {
+                        EVP_DigestUpdate(mdctx, buffer, bytes_read);
+                    }
+
+                    EVP_DigestFinal_ex(mdctx, output_hash, &output_len);
+                    EVP_MD_CTX_free(mdctx);
+                    fclose(file);
+                    printf("HASH[B]:");
+                    for (unsigned int i = 0; i < output_len; i++) {
+                        printf("%02x", output_hash[i]);
+                    }
+                    printf("\n");
+                }
             }
 
             // untar the file into pp_download
